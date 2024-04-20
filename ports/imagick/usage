@@ -1,0 +1,4 @@
+find_package(imagick REQUIRED)
+add_compile_definitions(${imagick_DEFINES})
+include_directories(${imagick_INCLUDE_DIR})
+link_libraries(${imagick_LIBS})

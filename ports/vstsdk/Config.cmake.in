@@ -1,0 +1,32 @@
+@PACKAGE_INIT@
+
+include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@Targets.cmake")
+
+check_required_components(@PROJECT_NAME@)
+
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/modules")
+
+get_filename_component(PACKAGE_PREFIX_DIR "${CMAKE_CURRENT_LIST_DIR}/../../" ABSOLUTE)
+
+set(vst3sdk_SOURCE_DIR "${PACKAGE_PREFIX_DIR}/include/@PROJECT_NAME@" CACHE INTERNAL "" FORCE)
+set(SMTG_USE_STDATOMIC_H OFF CACHE BOOL "" FORCE)
+set(SMTG_CREATE_PLUGIN_LINK OFF CACHE BOOL "" FORCE)
+
+if(APPLE)
+    execute_process(COMMAND xcodebuild -version RESULT_VARIABLE exitcode)
+    if (NOT ("${exitcode}" STREQUAL "0"))
+        message(STATUS "xcodebuild not found, enabling xcode command line tools hack: assuming xcode version 10")
+        set(XCODE_VERSION 10 CACHE STRING "" FORCE)
+        set(ENV{XCODE_VERSION} "10")
+    endif()
+endif()
+
+include(SMTG_VST3_SDK)
+smtg_enable_vst3_sdk()
+
+if(MSVC)
+    add_link_options($<IF:$<CONFIG:DEBUG>,/NODEFAULTLIB:MSVCRT,>)
+endif()
+
+add_executable(validator ALIAS vstsdk::validator)
+add_executable(moduleinfotool ALIAS vstsdk::moduleinfotool)

@@ -1,0 +1,18 @@
+@PACKAGE_INIT@
+
+include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@Targets.cmake")
+
+check_required_components(@PROJECT_NAME@)
+
+get_target_property(libs lucene++::lucene++ INTERFACE_LINK_LIBRARIES)
+set(boostdeps)
+foreach(lib ${libs})
+  if("${lib}" MATCHES "^Boost::(.*)\$")
+    if(NOT "${CMAKE_MATCH_1}" STREQUAL "boost")
+      list(APPEND boostdeps "${CMAKE_MATCH_1}")
+    endif()
+  endif()
+endforeach()
+message(">>>>>> ${boostdeps}")
+find_package(Boost REQUIRED COMPONENTS ${boostdeps})
+find_package(ZLIB REQUIRED)

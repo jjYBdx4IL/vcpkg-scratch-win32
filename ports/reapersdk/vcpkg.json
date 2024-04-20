@@ -1,0 +1,12 @@
+{
+  "name": "reapersdk",
+  "version": "1",
+  "port-version": 1,
+  "description": "Light-weight online font texture atlas builder",
+  "homepage": "https://github.com/memononen/fontstash",
+  "license": "Zlib",
+  "supports": "!uwp",
+  "dependencies": [
+    "stb"
+  ]
+}

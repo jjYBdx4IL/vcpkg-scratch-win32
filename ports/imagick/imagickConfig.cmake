@@ -1,0 +1,6 @@
+get_filename_component(ABS_ROOT "${CMAKE_CURRENT_LIST_DIR}/../.." ABSOLUTE)
+set(imagick_ROOT_DIR "${ABS_ROOT}" CACHE INTERNAL "" FORCE)
+set(imagick_LIB_DIR "${imagick_ROOT_DIR}/lib" CACHE INTERNAL "" FORCE)
+set(imagick_INCLUDE_DIR "${imagick_ROOT_DIR}/include/imagick" CACHE INTERNAL "" FORCE)
+set(imagick_LIBS "debug;imagickd;optimized;imagick" CACHE INTERNAL "" FORCE)
+set(imagick_DEFINES "MAGICKCORE_HDRI_ENABLE=0;MAGICKCORE_QUANTUM_DEPTH=16")

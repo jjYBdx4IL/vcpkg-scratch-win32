@@ -1,0 +1,19 @@
+{
+  "name": "imagick",
+  "version-semver": "7.1.0",
+  "port-version": 1,
+  "description": "",
+  "homepage": "https://imagemagick.org",
+  "license": null,
+  "supports": "!uwp",
+  "dependencies": [
+    {
+      "name": "vcpkg-cmake",
+      "host": true
+    },
+    {
+      "name": "vcpkg-cmake-config",
+      "host": true
+    }
+  ]
+}

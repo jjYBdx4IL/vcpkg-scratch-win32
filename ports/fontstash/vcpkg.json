@@ -1,0 +1,12 @@
+{
+  "name": "fontstash",
+  "version-date": "2019-04-22",
+  "port-version": 1,
+  "description": "Light-weight online font texture atlas builder",
+  "homepage": "https://github.com/memononen/fontstash",
+  "license": "Zlib",
+  "supports": "!uwp",
+  "dependencies": [
+    "stb"
+  ]
+}

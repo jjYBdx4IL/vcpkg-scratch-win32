@@ -1,0 +1,23 @@
+{
+  "name": "utils",
+  "version": "1.0",
+  "description": "",
+  "homepage": "",
+  "dependencies": [
+    "boost-filesystem",
+    "boost-format",
+    "boost-iostreams",
+    {
+      "name": "glfw3",
+      "version>=": "3.3.999"
+    },
+    {
+      "name": "vcpkg-cmake",
+      "host": true
+    },
+    {
+      "name": "vcpkg-cmake-config",
+      "host": true
+    }
+  ]
+}

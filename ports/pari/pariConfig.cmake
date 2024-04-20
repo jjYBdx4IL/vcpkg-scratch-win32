@@ -1,0 +1,5 @@
+get_filename_component(ABS_ROOT "${CMAKE_CURRENT_LIST_DIR}/../.." ABSOLUTE)
+set(pari_ROOT_DIR "${ABS_ROOT}" CACHE INTERNAL "" FORCE)
+set(pari_LIB_DIR "${pari_ROOT_DIR}/lib" CACHE INTERNAL "" FORCE)
+set(pari_INCLUDE_DIR "${pari_ROOT_DIR}/include/pari" CACHE INTERNAL "" FORCE)
+set(pari_LIBS "debug;parid;optimized;pari" CACHE INTERNAL "" FORCE)

@@ -1,0 +1,14 @@
+{
+  "name": "pugl",
+  "version-semver": "0.3.999",
+  "port-version": 1,
+  "description": "A minimal portable API for embeddable GUIs",
+  "homepage": "https://github.com/lv2/pugl",
+  "supports": "!(uwp | arm | x86)",
+  "dependencies": [
+    {
+      "name": "vcpkg-tool-meson",
+      "host": true
+    }
+  ]
+}

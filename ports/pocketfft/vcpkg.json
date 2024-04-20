@@ -1,0 +1,10 @@
+{
+  "name": "pocketfft",
+  "version-date": "2021-11-23",
+  "port-version": 1,
+  "description": "heavily modified implementation of FFTPack",
+  "homepage": "https://github.com/mreineck/pocketfft",
+  "license": "BSD-3-Clause",
+  "supports": "!uwp",
+  "dependencies": []
+}

@@ -1,0 +1,3 @@
+find_package(pari REQUIRED)
+include_directories(${pari_INCLUDE_DIR})
+link_libraries(${pari_LIBS})
