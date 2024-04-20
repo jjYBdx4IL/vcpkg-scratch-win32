@@ -1,4 +1,4 @@
-get_filename_component(SOURCE_PATH "${CMAKE_CURRENT_LIST_DIR}/../../utils" ABSOLUTE)
+get_filename_component(SOURCE_PATH "${CMAKE_CURRENT_LIST_DIR}/../../../utils" ABSOLUTE)
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
 )

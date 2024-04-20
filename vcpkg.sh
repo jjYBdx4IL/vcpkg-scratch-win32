@@ -437,9 +437,13 @@ if [[ -n "${DEBUG:-}" ]]; then
 fi
 JARG=""
 
+# Windows: assume running under Cygwin
 if [[ $(uname) =~ CYGWIN ]]; then
+    # configure CMake project
     cmake -S . -B "$(cmake_path "$BUILDDIR")" "-DCMAKE_TOOLCHAIN_FILE=$TCFILE" -DVCPKG_TARGET_TRIPLET=$VCPKG_DEFAULT_TRIPLET \
         ${TRACE:+--trace} ${CONF_ARGS:-}
+
+    # just start Visual Studio?
     if [[ "$cmd" == "vs" ]]; then
         if test -e "$BUILDDIR/$PROJECT_NAME.sln"; then
             exec cygstart "$BUILDDIR/$PROJECT_NAME.sln"
@@ -447,24 +451,34 @@ if [[ $(uname) =~ CYGWIN ]]; then
             exec cygstart "$BUILDDIR/"*".sln"
         fi
     fi
+
     cd "$BUILDDIR"
+
+    # read project-specific vcpkg.sh config
     if test -e "$SOURCEDIR/postconf.sh"; then . "$SOURCEDIR/postconf.sh"; fi
 
     if [[ "$cmd" != "rel" ]]; then
+        # Debug build
         cmake --build . --config Debug ${DEBUG:+-v} $JARG --parallel
+        # Debug tests
         ! test -f CTestTestfile.cmake || ctest -C Debug $JARG || ctest -C Debug --rerun-failed --output-on-failure
     fi
+
+    # skipt Release build and packaging if only dbg requested
     if [[ "$cmd" == "dbg" ]]; then
         exit 0
     fi
 
+    # build Release
     cmake --build . --config Release ${DEBUG:+-v} $JARG --parallel
+    # test Release
     ! test -f CTestTestfile.cmake || ctest -C Release $JARG || ctest -C Release --rerun-failed --output-on-failure
     # if [[ "$cmd" == "install" ]]; then
     #     cmake --install . --config Release
     #     cmake --install . --config Debug
     # fi
 
+    # Release packaging
     if test -e CPackConfig.cmake; then
         cpack . -C Release # --prefix "$(cmake_path "$DEVLIBS_INST_PREFIX")"
         cp -fv $PROJECT_NAME-*.msi $USERPROFILE/Downloads/.

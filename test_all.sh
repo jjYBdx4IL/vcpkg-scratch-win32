@@ -21,13 +21,13 @@ if [[ -z "${FASTEST:-}" ]]; then
     fi
 fi
 
-cd $scriptdir
+cdir=$(pwd)
 
 # randomize order of execution to detect incomplete pkglist.txt files
 # without having to emptying the installation dir completely every time
 for PKGLIST in `shopt -s globstar; grep '^#\s*@TESTALL:.*@' **/CMakeLists.txt | cut -d ':' -f1 | shuf`; do
     pkgdir="$(dirname "$PKGLIST")"
-    cd $scriptdir/$pkgdir
+    cd $cdir/$pkgdir
     pwd
     $scriptdir/vcpkg.sh clean
     if [[ -z "${FASTEST:-}" ]]; then
