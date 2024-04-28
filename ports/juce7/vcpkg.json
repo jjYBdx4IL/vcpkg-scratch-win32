@@ -1,6 +1,6 @@
 {
   "name": "juce7",
-  "version-semver": "7.0.11",
+  "version-semver": "7.0.12",
   "port-version": 1,
   "description": "JUCE is an open-source cross-platform C++ application framework for desktop and mobile applications, including VST, VST3, AU, AUv3, RTAS and AAX audio plug-ins.",
   "homepage": "https://github.com/juce-framework/JUCE",

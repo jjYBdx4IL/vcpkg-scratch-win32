@@ -70,26 +70,9 @@ fi
 
 cmd=${1:-}
 
-if [[ -n "${DEBUG:-}${TRACE:-}" ]]; then
+#if [[ -n "${DEBUG:-}${TRACE:-}" ]]; then
     export CMAKE_BUILD_PARALLEL_LEVEL=1
-fi
-
-if test -e "$VCPKG_ROOT"; then
-    pushd "$VCPKG_ROOT"
-    if ! CUR_REV=$(git log -n1 | head -n1 | grep "^commit " | awk '{print $2}'); then
-        CUR_REV="none"
-    fi
-    # if [[ "$CUR_REV" != "none" ]]; then
-    #     echo "Current vcpkg revision:"
-    #     git log -n1
-    # fi
-    popd
-    if [[ "$CUR_REV" != "$VCPKG_GIT_REV" ]]; then
-        echo "New VCPKG revision selected: $VCPKG_GIT_REV"
-        echo "Deleting stale vcpkg installation..."
-        rm -rf "$VCPKG_ROOT"
-    fi
-fi
+#fi
 
 if ! test -e "$VCPKG_ROOT"; then
     mkdir $VCPKG_ROOT
@@ -110,6 +93,23 @@ fi
 
 cd $VCPKG_ROOT
 
+if ! CUR_REV=$(git log -n1 | head -n1 | grep "^commit " | awk '{print $2}'); then
+    CUR_REV="none"
+fi
+# if [[ "$CUR_REV" != "none" ]]; then
+#     echo "Current vcpkg revision:"
+#     git log -n1
+# fi
+if [[ "$CUR_REV" != "$VCPKG_GIT_REV" ]]; then
+    echo "New VCPKG revision selected: $VCPKG_GIT_REV"
+    # echo "Deleting stale vcpkg installation..."
+    # rm -rf "$VCPKG_ROOT"
+    git pull ||:
+    git checkout -f $VCPKG_GIT_REV
+    [[ $(git status -s 2>&1 | wc -l) == 0 ]]
+    git clean -dxf
+fi
+
 if [[ $(uname) =~ CYGWIN ]]; then
     if ! test -e "$VCPKG_ROOT/vcpkg.exe"; then
         cmd /C bootstrap-vcpkg.bat
@@ -121,7 +121,9 @@ else
 fi
 
 
-
+if [[ "$cmd" == "init" ]]; then
+    exit 0
+fi
 
 
 if [[ "$cmd" == "help" ]]; then
@@ -132,8 +134,11 @@ if [[ "$cmd" == "help" ]]; then
     echo "    deps - read pkglist.txt in current dir and install listed packages"
     echo "    reconf - remove CMakeCache.txt first"
     echo "    clean - clean out build dir (except .vs/ sub dir)"
+    echo "    dbg|rel - build Release or Debug target only"
     echo "    * - run vcpkg in VCPKG_ROOT with given arguments"
     echo "    <EMPTY> - rebuild project in current directory"
+    echo "Env vars:"
+    echo "    SKIP_TESTS - skip running tests (ctest)"
     echo "Using overlay in: $PORTS_OVERLAY_DIR"
     echo "----------------------------------------------------------------------------"
     echo "vcpkg commands:"
@@ -143,6 +148,7 @@ fi
 
 RMPKG_TSTAMP="$CMAKE_USER_BUILD_DIR/.tstamp.__RMPKG__"
 if [[ "$cmd" == "rmpkgs" ]]; then
+    echo "Removing $VCPKG_ROOT/{buildtrees,packages,installed} ..."
     rm -rf "$VCPKG_ROOT/"{buildtrees,packages,installed}
     touch $RMPKG_TSTAMP
     echo "Done."
@@ -151,6 +157,7 @@ fi
 if [[ "$cmd" == "rm-archives" ]]; then
     if test -n "${VCPKG_DEFAULT_BINARY_CACHE:-}"; then
         if test -e "${VCPKG_DEFAULT_BINARY_CACHE:-}"; then
+            echo "Removing archives in $VCPKG_DEFAULT_BINARY_CACHE ..."
             find "$VCPKG_DEFAULT_BINARY_CACHE" -mindepth 1 -delete
         fi
     fi
@@ -161,6 +168,10 @@ fi
 rm_bincache() {
     local pkgname=$1
     local triplet=$2
+    if [[ $pkgname =~ (.*):(.*) ]]; then
+        pkgname=${BASH_REMATCH[1]}
+        triplet=${BASH_REMATCH[2]}
+    fi
     local abifn="$(cygpath "$VCPKG_ROOT/buildtrees/$pkgname/$triplet.vcpkg_abi_info.txt")"
     if test -e $abifn; then
         local sum="$(set -o pipefail; sha256sum "$abifn" | cut -b 1-64;echo)"
@@ -461,7 +472,9 @@ if [[ $(uname) =~ CYGWIN ]]; then
         # Debug build
         cmake --build . --config Debug ${DEBUG:+-v} $JARG --parallel
         # Debug tests
-        ! test -f CTestTestfile.cmake || ctest -C Debug $JARG || ctest -C Debug --rerun-failed --output-on-failure
+        if [[ -z "${SKIP_TESTS:-}" ]]; then
+            ! test -f CTestTestfile.cmake || ctest -C Debug $JARG || ctest -C Debug --rerun-failed --output-on-failure
+        fi
     fi
 
     # skipt Release build and packaging if only dbg requested
@@ -472,7 +485,9 @@ if [[ $(uname) =~ CYGWIN ]]; then
     # build Release
     cmake --build . --config Release ${DEBUG:+-v} $JARG --parallel
     # test Release
-    ! test -f CTestTestfile.cmake || ctest -C Release $JARG || ctest -C Release --rerun-failed --output-on-failure
+    if [[ -z "${SKIP_TESTS:-}" ]]; then
+        ! test -f CTestTestfile.cmake || ctest -C Release $JARG || ctest -C Release --rerun-failed --output-on-failure
+    fi
     # if [[ "$cmd" == "install" ]]; then
     #     cmake --install . --config Release
     #     cmake --install . --config Debug

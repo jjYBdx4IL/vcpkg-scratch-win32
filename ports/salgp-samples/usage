@@ -1,0 +1,3 @@
+The find_package command sets the SALGP_INST_DIR variable:
+
+    find_package(salgp-samples REQUIRED)

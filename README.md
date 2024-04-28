@@ -31,7 +31,7 @@ Don't-care-license. Consider it public domain unless:
 BUT BEWARE! Some of the ports may be based on stuff 'borrowed' from
 https://github.com/Microsoft/vcpkg - so the licenses over there might apply.
 
-vcpkg.sh and test_all.sh are definitely my own Frankstein creations, so
+vcpkg.sh and test_all.sh are definitely my own Frankenstein creations, so
 definitely public domain.
 
 # vcpkg.sh
@@ -73,4 +73,4 @@ a purge of the installed vcpkg packages before execution.
 
 
 --
-devel/cpp/vcpkg@8116
+devel/cpp/vcpkg@8125

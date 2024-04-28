@@ -1,4 +1,4 @@
-set(VSTSDK_VER "3.7.10_build-14_2024-01-18")
+set(VSTSDK_VER "3.7.11_build-10_2024-04-22")
 
 string(REGEX REPLACE "^([0-9.]*)_.*\$" "\\1" version "${VSTSDK_VER}")
 
@@ -17,7 +17,7 @@ vcpkg_download_distfile(
     ARCHIVE
     URLS "https://download.steinberg.net/sdk_downloads/vst-sdk_${VSTSDK_VER}.zip"
     FILENAME "vst-sdk_${VSTSDK_VER}.zip"
-    SHA512 ca4d232f83772e1255401b591d8cab36111e726aae1d7237a8268569ddd5894252b22c492cb0d514b63f3e48a85c06e5bf62fe2f664f1d543dd0a1b7693636dd
+    SHA512 e19ff4ac0c5005b97402eddfce39e94dacd2e55f6ac8a288d5520cb48fb41dfff05188ff8ea1a4a1b1b0d6a89f558c798e8356cf9fcb68bd4e8b3431aee02932
 )
 vcpkg_extract_source_archive_ex(
     OUT_SOURCE_PATH SOURCE_PATH
