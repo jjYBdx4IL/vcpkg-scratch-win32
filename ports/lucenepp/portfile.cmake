@@ -4,8 +4,9 @@ string(JSON version GET "${_vcpkg_json}" "version")
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO luceneplusplus/LucenePlusPlus
-    REF rel_${version}
-    SHA512 fdc4ce5d55b05d8a1fa62bf749e2e428b8beec66847524f632b806d10ec7c969ca7d3c556804d2ce4b7cdf05db4f3c5613bde41aae53df9fe574d3046d448bf1
+    #REF rel_${version}
+    REF 76dc90f2b65d81be018c499714ff11e121ba5585
+    SHA512 8834c22c56fa60298de30901112b382556dc176068d3d08319baa523f88b834500f7a6a2bb8588709faff5159f750d4e13651d0fda0dbbf2284eabe966b3b55e
     HEAD_REF master
 )
 

@@ -4,9 +4,7 @@
   "description": "",
   "homepage": "",
   "dependencies": [
-    "boost-filesystem",
-    "boost-format",
-    "boost-iostreams",
+    "boost",
     {
       "name": "glfw3",
       "version>=": "3.3.999"

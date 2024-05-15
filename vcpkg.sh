@@ -17,9 +17,14 @@ if ! scriptdir="$(cd "$(dirname "$0")" && cd "$(dirname "$(readlink "$0")")" && 
     scriptdir="$(cd "$(dirname "$0")" && pwd)"
 fi
 
+CYGWIN=0
+if [[ "$(uname)" =~ CYGWIN ]]; then
+    CYGWIN=1
+fi
+
 # TODO? move to a user config location so it's not part of the public github repo?
 if [[ -z "${VCPKG_GIT_REV:-}" ]]; then
-    VCPKG_GIT_REV=6c87aab05cb2ebd1c9e382167edf3b15a7718e70
+    VCPKG_GIT_REV=f4456c1b974131b8467c7371a3c302b7f58a99f2
 fi
 VCPKG_GIT_URL=https://github.com/microsoft/vcpkg.git
 
@@ -44,14 +49,14 @@ fi
 
 if test -z "${VCPKG_DEFAULT_BINARY_CACHE:-}"; then
     # set to default assumed by vcpkg if not set (for script purposes)
-    if [[ "$(uname)" =~ CYGWIN ]]; then
+    if (( CYGWIN )); then
         export VCPKG_DEFAULT_BINARY_CACHE="$LOCALAPPDATA/vcpkg/archives"
     else
         export VCPKG_DEFAULT_BINARY_CACHE="$HOME/.cache/vcpkg/archives"
     fi
 fi
 
-if [[ $(uname) =~ CYGWIN ]]; then
+if (( CYGWIN )); then
 cmake_path() {
     if which cmake | grep ^/cygdrive >/dev/null; then
         cygpath -m "$1"
@@ -70,15 +75,18 @@ fi
 
 cmd=${1:-}
 
-#if [[ -n "${DEBUG:-}${TRACE:-}" ]]; then
+if [[ -n "${DEBUG:-}${TRACE:-}" ]]; then
     export CMAKE_BUILD_PARALLEL_LEVEL=1
-#fi
+fi
 
 if ! test -e "$VCPKG_ROOT"; then
     mkdir $VCPKG_ROOT
-    pushd $VCPKG_ROOT
-    compact /c /s /I /Q
-    popd
+    if (( CYGWIN )); then
+        # enable folder content compression
+        pushd $VCPKG_ROOT
+        compact /c /s /I /Q
+        popd
+    fi
     git clone $VCPKG_GIT_URL $VCPKG_ROOT
     cd $VCPKG_ROOT
 
@@ -104,13 +112,15 @@ if [[ "$CUR_REV" != "$VCPKG_GIT_REV" ]]; then
     echo "New VCPKG revision selected: $VCPKG_GIT_REV"
     # echo "Deleting stale vcpkg installation..."
     # rm -rf "$VCPKG_ROOT"
-    git pull ||:
+    git checkout -f master
+    #git clean -dxf
+    git pull
     git checkout -f $VCPKG_GIT_REV
     [[ $(git status -s 2>&1 | wc -l) == 0 ]]
     git clean -dxf
 fi
 
-if [[ $(uname) =~ CYGWIN ]]; then
+if (( CYGWIN )); then
     if ! test -e "$VCPKG_ROOT/vcpkg.exe"; then
         cmd /C bootstrap-vcpkg.bat
     fi
@@ -148,8 +158,18 @@ fi
 
 RMPKG_TSTAMP="$CMAKE_USER_BUILD_DIR/.tstamp.__RMPKG__"
 if [[ "$cmd" == "rmpkgs" ]]; then
-    echo "Removing $VCPKG_ROOT/{buildtrees,packages,installed} ..."
-    rm -rf "$VCPKG_ROOT/"{buildtrees,packages,installed}
+    echo "Removing $VCPKG_ROOT/{packages,installed} ..."
+    if (( CYGWIN )); then
+        # seems to be faster to use Windows' own commands:
+        if test -e $VCPKG_ROOT/packages; then
+            cmd /C rmdir /S /Q "$(cygpath -w "$VCPKG_ROOT/packages")"
+        fi
+        if test -e $VCPKG_ROOT/installed; then
+            cmd /C rmdir /S /Q "$(cygpath -w "$VCPKG_ROOT/installed")"
+        fi
+    else
+        rm -rf "$VCPKG_ROOT/"{packages,installed}
+    fi
     touch $RMPKG_TSTAMP
     echo "Done."
     exit 0
@@ -189,6 +209,13 @@ fi
 if [[ "$cmd" == "mci" ]]; then
     cd "$VCPKG_ROOT/installed/${VCPKG_DEFAULT_TRIPLET}"
     exec mc
+fi
+
+if [[ "$cmd" == "rm-archive" ]]; then
+    pkg=$2
+    [[ -n "$pkg" ]]
+    rm_bincache $pkg $VCPKG_DEFAULT_TRIPLET
+    exit 0
 fi
 
 if [[ "$cmd" == "install" ]] || [[ "$cmd" == "reinstall" ]]; then
@@ -349,7 +376,7 @@ EOF
         if [[ "$SOURCEDIR" =~ /cpp/vst/ ]] || [[ "$SOURCEDIR" =~ /cpp/juce/ ]]; then
             REAPER_LOC=$HOME/reaper/reaper
             DBGTYPE="cppdbg"
-            if [[ "$(uname)" =~ CYGWIN ]]; then
+            if (( CYGWIN )); then
                 REAPER_LOC=$(cmake_path "$USERPROFILE/Documents/reaper-dev")
             elif [[ "$(uname)" =~ Darwin ]]; then
                 REAPER_LOC=/Applications/REAPER.App/Contents/MacOS/REAPER
@@ -423,7 +450,7 @@ EOF
 EOF
         fi
     fi
-    if [[ $(uname) =~ CYGWIN ]]; then
+    if (( CYGWIN )); then
         exec vscode .
     else
         # bug: include paths don't get resolved properly when opening a project via symbolic links
@@ -449,7 +476,7 @@ fi
 JARG=""
 
 # Windows: assume running under Cygwin
-if [[ $(uname) =~ CYGWIN ]]; then
+if (( CYGWIN )); then
     # configure CMake project
     cmake -S . -B "$(cmake_path "$BUILDDIR")" "-DCMAKE_TOOLCHAIN_FILE=$TCFILE" -DVCPKG_TARGET_TRIPLET=$VCPKG_DEFAULT_TRIPLET \
         ${TRACE:+--trace} ${CONF_ARGS:-}

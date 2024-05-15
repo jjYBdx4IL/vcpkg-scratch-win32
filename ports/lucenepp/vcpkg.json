@@ -1,6 +1,6 @@
 {
   "name": "lucenepp",
-  "version": "3.0.8",
+  "version": "3.0.9.1",
   "description": "Lucene++ is an up to date C++ port of the popular Java Lucene library, a high-performance, full-featured text search engine. ",
   "homepage": "https://github.com/luceneplusplus/LucenePlusPlus",
   "dependencies": [

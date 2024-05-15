@@ -1,0 +1,4 @@
+The package wix3 provides CPack tooling executables:
+
+    find_package(wix3 CONFIG REQUIRED)
+    set(CPACK_WIX_ROOT ${WIX3_DIR})

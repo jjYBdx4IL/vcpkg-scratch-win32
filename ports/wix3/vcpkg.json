@@ -1,0 +1,19 @@
+{
+  "name": "wix3",
+  "version": "3.14.1",
+  "port-version": 1,
+  "description": "WiX Toolset v3.x",
+  "homepage": "https://wixtoolset.org/",
+  "license": null,
+  "supports": "windows & !uwp & !x86",
+  "dependencies": [
+    {
+      "name": "vcpkg-cmake",
+      "host": true
+    },
+    {
+      "name": "vcpkg-cmake-config",
+      "host": true
+    }
+  ]
+}

@@ -8,6 +8,8 @@ if ! scriptdir="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"; then
     scriptdir="$(cd "$(dirname "$0")" && pwd)"
 fi
 
+VCPKG_SH=$scriptdir/vcpkg.sh
+
 # decrease exeuction priority
 renice 19 $$ || :
 
@@ -24,7 +26,7 @@ if [[ -n "${TEST_ALL_VCPKG_ROOT:-}" ]]; then
     export VCPKG_DEFAULT_BINARY_CACHE=$TEST_ALL_VCPKG_ROOT/archives
     export CMAKE_USER_BUILD_DIR=$TEST_ALL_VCPKG_ROOT/cmbd
     export VCPKG_ROOT=$TEST_ALL_VCPKG_ROOT
-    vcpkg init
+    $VCPKG_SH init
     install -d $TEST_ALL_VCPKG_ROOT/cmbd
     install -d $TEST_ALL_VCPKG_ROOT/archives
     # work on a copy of my to-be-tested sources
@@ -32,38 +34,21 @@ if [[ -n "${TEST_ALL_VCPKG_ROOT:-}" ]]; then
     cd "$TEST_ALL_VCPKG_ROOT/my_srcs"
 fi
 
-# FASTEST=1 :
-#   * skip tests
-#   * skip release builds
-#   * use binary cache
-#   * don't purge installed packages (+sources)
+if test -f $scriptdir/../test_all_precmd.sh; then
+    # if working on own ports, force rebuild from source (ie $VCPKG_SH rm-archive <portname:alt_triplet>)
+    . $scriptdir/../test_all_precmd.sh
+fi
 
-# FAST=1 :
-#   * purge installed packages and sources
-#   * use binary cache
+if [[ -z "${FAST:-}" ]]; then
+    $VCPKG_SH rmpkgs # force reinstall of deps (implies random dependency checks, but faster than a complete one)
+fi
 
-# none of FAST or FASTEST:
-#   * don't use binary cache
-#   * purge installed packages and sources
+if [[ -n "${FAST:-}" ]]; then
+    export SKIP_TESTS=1 # don't run tests
+fi
 
-# for rebuilding all archives do:
-#   * vcpkg rm-archives
-#   * FAST=1 ./test_all.sh
-# That's essentially equivalent to running test_all.sh
-# without FAST/EST options, but rebuilds the package
-# archive, which it wouldn't otherwise touch.
-
-if [[ -z "${FASTEST:-}" ]]; then
-    $scriptdir/vcpkg.sh rmpkgs
-    if [[ -z "${FAST:-}" ]]; then
-        if [[ -n "${TEST_ALL_VCPKG_ROOT:-}" ]]; then
-            vcpkg rm-archives
-        else # don't delete user's archives
-            export VCPKG_FEATURE_FLAGS=-binarycaching
-        fi
-    fi
-else # FASTEST=1 : skip tests and release builds, use binary cache
-    export SKIP_TESTS=1
+if [[ -n "${REBUILD_PKGS:-}" ]] || [[ -n "${BUILD_PKGS:-}" ]]; then
+    $VCPKG_SH rm-archives # force rebuild of packages from source
 fi
 
 
@@ -82,14 +67,17 @@ for PKGLIST in `shopt -s globstar; grep '^#\s*@TESTALL:.*@' **/CMakeLists.txt | 
     pkgdir="$(dirname "$PKGLIST")"
     cd $cdir/$pkgdir
     pwd
-    $scriptdir/vcpkg.sh clean
-    if [[ -z "${FASTEST:-}" ]]; then
-        $scriptdir/vcpkg.sh
+    $VCPKG_SH clean
+    if [[ -n "${DEP_CHECK:-}" ]]; then
+        $VCPKG_SH rmpkgs # remove installed pkgs to check for missing deps
+    fi
+    if [[ -z "${FAST:-}" ]]; then
+        $VCPKG_SH # dbg+rel builds
     else
-        $scriptdir/vcpkg.sh dbg
+        $VCPKG_SH dbg # just dbg build
     fi
     if (( lowspace )); then
-        $scriptdir/vcpkg.sh clean
+        $VCPKG_SH clean # clean up after to save space
     fi
 done
 
